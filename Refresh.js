@@ -1,92 +1,81 @@
-async function solveAndCheck() {
-    console.log("🎯 กำลังกดปุ่ม Correction เพื่อเริ่มการตรวจคำตอบ...");
+async function refreshSolve() {
+    console.log("🎯 [Refresh] เริ่มสุ่มคำตอบทั้งหมด...");
+    
+    // 1️⃣ **สุ่มคำตอบทุกข้อพร้อมกัน**
+    let refreshButtons = document.querySelectorAll(".halflings-icon.refresh");
+    let refreshPromises = [];
 
-    // 1. กดปุ่ม "Correction" ก่อน
-    let correctionButton = document.querySelector('.action-exercise-button.correct');
+    // สร้าง Promise สำหรับการคลิกแต่ละปุ่ม
+    refreshButtons.forEach((button, index) => {
+        refreshPromises.push(new Promise(resolve => {
+            button.click();
+            console.log(`🔄 [Refresh] สุ่มข้อที่ ${index + 1}`);
+            setTimeout(resolve, 100); // รอ 100 มิลลิวินาทีหลังจากคลิก
+        }));
+    });
+
+    // รอให้ทุกปุ่มถูกคลิกพร้อมกัน
+    await Promise.all(refreshPromises);
+
+    // 2️⃣ **กด Correction**
+    let correctionButton = document.querySelector(".action-exercise-button.correct");
     if (correctionButton) {
         correctionButton.click();
-        console.log("✅ กด Correction เพื่อตรวจคำตอบ");
+        console.log("✅ [Refresh] กด Correction เพื่อตรวจคำตอบ...");
     } else {
-        console.log("❌ ไม่พบปุ่ม Correction!");
+        console.log("❌ [Refresh] ไม่พบปุ่ม Correction!");
         return;
     }
 
-    // 2. หน่วงเวลา 1 วินาที เพื่อให้ระบบเห็นปุ่ม "Solution"
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // รอให้ระบบตรวจคำตอบก่อน (0.5 วิ)
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // 3. กดปุ่ม "Solution"
-    let solutionButton = document.querySelector('button.btn-link.solution');
-    if (solutionButton) {
-        solutionButton.click();
-        console.log("✅ กด Solution");
+    // 3️⃣ **เช็คข้อที่ผิด**
+    let incorrectAnswers = document.querySelectorAll(".input-group.has-error");
+    while (incorrectAnswers.length > 0) {
+        console.log(`❌ [Refresh] พบข้อผิด ${incorrectAnswers.length} ข้อ กำลังสุ่มใหม่...`);
 
-        // รอ 0.5 วินาทีให้คำตอบแสดง
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // 4. เก็บคำตอบที่ได้
-        let answers = [];
-        let answerFields = document.querySelectorAll('.answer.form-control');
-        
-        if (answerFields.length === 0) {
-            console.log("❌ ไม่พบช่องกรอกคำตอบ!");
-            return;
-        }
-
-        // เก็บคำตอบจากช่องกรอกคำตอบ
-        answerFields.forEach(field => {
-            answers.push(field.value);
-        });
-
-        console.log("📝 คำตอบที่เก็บ: ", answers);
-
-        // 5. กดปุ่ม "Repeat" เพื่อเริ่มใหม่
-        let repeatButton = document.querySelector('button[class*="repeat"]');
-        if (repeatButton) {
-            repeatButton.click();
-            console.log("✅ กด Repeat");
-        } else {
-            console.log("❌ ไม่พบปุ่ม Repeat!");
-            return;
-        }
-
-        // รอ 0.5 วินาทีให้การเปลี่ยนแปลงเกิดขึ้น
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // 6. เติมคำตอบในช่องที่ตรงกับคำตอบที่เก็บไว้
-        let blanks = document.querySelectorAll('.answer.form-control');
-        await Promise.all(Array.from(blanks).map((blank, index) => {
-            if (answers[index]) {
-                blank.value = answers[index]; // เติมคำตอบที่เก็บไว้
-                console.log(`✅ เติมคำตอบ '${answers[index]}' ในช่องที่ ${index + 1}`);
+        for (let question of incorrectAnswers) {
+            let refreshButton = question.querySelector(".halflings-icon.refresh");
+            if (refreshButton) {
+                refreshButton.click();
+                console.log("🔄 [Refresh] กดสุ่มใหม่...");
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
-        }));
+        }
 
-        // 7. กดปุ่ม "Correction" เพื่อตรวจคำตอบอีกครั้ง
-        correctionButton = document.querySelector('.action-exercise-button.correct');
+        // กด Correction อีกรอบ
+        correctionButton = document.querySelector(".action-exercise-button.correct");
         if (correctionButton) {
             correctionButton.click();
-            console.log("✅ กด Correction เพื่อตรวจคำตอบอีกครั้ง");
+            console.log("✅ [Refresh] กด Correction เพื่อตรวจคำตอบอีกครั้ง...");
         } else {
-            console.log("❌ ไม่พบปุ่ม Correction อีกครั้ง!");
+            console.log("❌ [Refresh] ไม่พบปุ่ม Correction!");
+            return;
         }
 
-        // 8. หน่วงเวลา 0.5 วินาที เพื่อให้การตรวจคำตอบเสร็จ
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // รอให้ระบบตรวจคำตอบอีกครั้ง (0.5 วิ)
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 9. กดปุ่ม Next เพื่อไปยังขั้นตอนถัดไป
+        // อัปเดตรายการข้อผิดใหม่
+        incorrectAnswers = document.querySelectorAll(".input-group.has-error");
+    }
+
+    console.log("🎉 [Refresh] สุ่มเสร็จ! ทุกข้อถูกต้องแล้ว!");
+
+    // รอ 100ms ก่อนกด "Next"
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // รอจนกว่าปุ่ม Next จะโหลด
+    let checkNextButton = setInterval(() => {
         let nextButton = document.querySelector(".action-exercise-button.next");
         if (nextButton) {
+            clearInterval(checkNextButton); // หยุดการตรวจสอบเมื่อปุ่ม Next พร้อม
             nextButton.click();
-            console.log("➡️ กด Next ไปยังขั้นตอนถัดไป...");
-        } else {
-            console.log("❌ ไม่พบปุ่ม Next!");
+            console.log("➡️ [Refresh] กด Next ไปยังขั้นตอนถัดไป...");
         }
-
-        console.log("🎉 เสร็จสิ้นการกดปุ่ม Correction, Solution, Repeat และ Next!");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Solution!");
-    }
+    }, 100); // ตรวจสอบทุกๆ 100 มิลลิวินาที
 }
 
-// เรียกใช้งานฟังก์ชัน
-solveAndCheck();
+// 🔥 เรียกใช้งานโค้ด
+refreshSolve();
