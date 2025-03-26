@@ -11,7 +11,7 @@ async function solveAndClick() {
         return;
     }
 
-    // รอให้คำตอบแส
+    // รอให้คำตอบแสดง
     await new Promise(resolve => setTimeout(resolve, 700));
 
     // 2. ตรวจเช็ค class="exercise-items"
@@ -73,7 +73,13 @@ async function solveAndClick() {
         // หน่วงเวลา 1 วินาทีเพื่อให้คำตอบแสดงก่อน
         await new Promise(resolve => setTimeout(resolve, 700));
 
-        // 7. กดปุ่ม "Next" เพื่อไปยังขั้นตอนถัดไป
+        // 7. รอจนกว่าผลลัพธ์เป็น 100 ก่อนกด Next
+        while (!document.querySelector('span.result-badge-text[data-result="100"]')) {
+            console.log("⏳ รอให้คะแนนเป็น 100 ก่อนกด Next...");
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        console.log("✅ ได้คะแนน 100 แล้ว กดปุ่ม Next!");
         let nextButton = document.querySelector('button[class*="next"]');
         if (nextButton) {
             nextButton.click();
