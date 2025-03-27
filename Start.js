@@ -1,2 +1,2 @@
-const btn = document.querySelector('.call-to-action:not(.ml-auto)'); 
+const btn = document.querySelector('button.btn[tabindex="-1"]');
 if (btn) btn.click();
