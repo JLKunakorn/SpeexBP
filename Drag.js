@@ -10,7 +10,7 @@ if (targetElement) {
     console.log("❌ [Drag] ไม่พบ .drag-drop-placeholder.ui-droppable");
 }
 
-// หน่วงเวลาเล็กน้อยก่อนเริ่มคลิก drag-drop
+// หน่วงเวลา 0.5 วิ หลังจากกด placeholder
 setTimeout(() => {
     console.log("🚀 [Drag] เริ่มต้นคลิกตามลำดับจากน้อยไปมาก...");
 
@@ -24,17 +24,17 @@ setTimeout(() => {
         return idA - idB;
     });
 
-    // คลิกตามลำดับ
+    // คลิกตามลำดับ พร้อมหน่วง 10ms ต่อแต่ละคลิก
     draggableElements.forEach((element, index) => {
         setTimeout(() => {
             element.click();
             console.log(`✅ [Drag] คลิกที่ ${element.getAttribute('data-drag-drop-id')}`);
-        }, index * 1); // หน่วงเวลากันพลาด (10ms ต่อคลิก)
+        }, index * 10);
     });
 
     console.log("🎯 [Drag] คลิก Drag-Drop เสร็จแล้ว!");
 
-    // หน่วงเวลา 500ms ก่อนกด Correction
+    // หน่วงเวลา 500ms หลังจากคลิก drag-drop ทั้งหมด แล้วกด Correction
     setTimeout(() => {
         console.log("🚀 [Drag] กำลังกด Correction...");
 
@@ -50,8 +50,8 @@ setTimeout(() => {
         setTimeout(() => {
             console.log("🚀 [Drag] กำลังกด Next...");
 
-            let nextButton = document.querySelector('.action-exercise-button.next');
-            if (nextButton) {
+            let nextButton = document.querySelector('.btn.btn-primary.action-exercise-button.next.nxt-exercise');
+            if (nextButton && nextButton.offsetHeight > 0 && nextButton.offsetWidth > 0) {
                 nextButton.click();
                 console.log("✅ [Drag] กด Next สำเร็จ");
             } else {
@@ -59,6 +59,6 @@ setTimeout(() => {
             }
 
             console.log("🎉 [Drag] เสร็จสิ้นการทำงาน!");
-        }, 1000); // หน่วง 1 วินาทีหลังจากกด Correction
-    }, draggableElements.length * 10 + 500); // หน่วง 500ms หลังจากคลิก drag-drop เสร็จ
-}, 500); // หน่วง 0.5 วิ หลังจากกด .drag-drop-placeholder.ui-droppable
+        }, 1000); // หน่วงเวลา 1 วินาทีหลัง Correction
+    }, draggableElements.length * 10 + 500); // หน่วง 500ms หลังจาก drag-drop เสร็จ
+}, 500); // หน่วงเวลา 0.5 วิ หลังจากกด placeholder
