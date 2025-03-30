@@ -1,38 +1,51 @@
 async function solveAndClick() {
     console.log("🎯 กำลังกดปุ่ม Correction เพื่อแสดงคำตอบที่ถูกต้อง...");
 
-    // 1. ตรวจสอบปุ่ม "Correction" ก่อนแล้วกด
+    // 1. กดปุ่ม "Correction"
     let correctionButton = document.querySelector('.action-exercise-button.correct');
-    if (!correctionButton) {
+    if (correctionButton) {
+        correctionButton.click();
+        console.log("✅ กด Correction เพื่อตรวจคำตอบ");
+    } else {
         console.log("❌ ไม่พบปุ่ม Correction!");
         return;
     }
-    correctionButton.click();
-    console.log("✅ กด Correction เพื่อตรวจคำตอบ");
 
-    // รอคำตอบแสดง (ลดเวลารอ)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // รอให้คำตอบแสดง
+    await new Promise(resolve => setTimeout(resolve, 700));
 
-    // 2. ตรวจเช็คทุก .scrambled-cell-container
-    let exerciseItems = document.querySelectorAll('.scrambled-cell-container');
-    let successItemFound = false;
+    // 2. ตรวจเช็คทุก element ที่มี class ตามที่ระบุ
+    let scrambledCells = document.querySelectorAll('.scrambled-cell.ui-state-default.ui-draggable.ui-draggable-handle.ui-droppable');
+    let successFound = false;
 
-    exerciseItems.forEach(item => {
-        // ตรวจสอบว่าในแต่ละ .scrambled-cell-container มี .scrambled-cell.success หรือไม่
-        if (item.querySelector('.scrambled-cell.success')) {
-            successItemFound = true;
+    scrambledCells.forEach(cell => {
+        // ถ้า element มี class "success" ถือว่าถูกต้อง
+        if (cell.classList.contains('success')) {
+            successFound = true;
         } else {
-            item.remove();  // ลบ item ที่ไม่มี success
+            cell.remove();  // ลบ element ที่ไม่มี success
         }
     });
 
-    // ถ้าไม่พบคำตอบที่ถูกต้อง
-    if (!successItemFound) {
-        console.log("❌ ไม่พบคำตอบที่ถูกต้อง ลองใหม่...");
+    // หน่วงเวลา 1 วินาทีหลังจากลบ element เพื่อให้เห็นผล
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // 3. รอ 1.5 วินาที แล้วกดปุ่ม "Solution"
+    // 3. ถ้าไม่พบคำตอบที่ถูกต้องเลย
+    if (!successFound) {
+        console.log("❌ ไม่พบคำตอบที่ถูกต้อง! กำลังทำตามขั้นตอนเพื่อแก้ไข...");
+
+        // กดปุ่ม "Correction"
+        correctionButton = document.querySelector('.action-exercise-button.correct');
+        if (correctionButton) {
+            correctionButton.click();
+            console.log("✅ กด Correction เพื่อตรวจคำตอบอีกครั้ง");
+        }
+
+        // รอ 1.5 วิ
         await new Promise(resolve => setTimeout(resolve, 1500));
-        let solutionButton = document.querySelector('button.btn-link.solution');
+
+        // กดปุ่ม "Solution" (class="btn btn-link solution")
+        let solutionButton = document.querySelector('button.btn.btn-link.solution');
         if (solutionButton) {
             solutionButton.click();
             console.log("✅ กด Solution เพื่อแสดงคำตอบที่ถูกต้อง");
@@ -40,11 +53,11 @@ async function solveAndClick() {
             console.log("❌ ไม่พบปุ่ม Solution!");
         }
 
-        // รอให้เฉลยแสดง (ลดเวลารอ)
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // รอ 0.5 วิ
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 4. กดปุ่ม "Repeat" เพื่อเริ่มใหม่
-        let repeatButton = document.querySelector('button[class*="repeat"]');
+        // กดปุ่ม "Repeat" (class="btn btn-primary action-exercise-button repeat")
+        let repeatButton = document.querySelector('button.btn.btn-primary.action-exercise-button.repeat');
         if (repeatButton) {
             repeatButton.click();
             console.log("✅ กด Repeat เพื่อทำแบบทดสอบใหม่");
@@ -53,24 +66,24 @@ async function solveAndClick() {
         }
 
         // รอให้หน้าโหลดใหม่
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // เริ่มกระบวนการใหม่
+        // เริ่มการตรวจสอบใหม่
         solveAndClick();
     } else {
         console.log("🎉 พบคำที่ถูกต้องแล้ว!");
 
-        // 5. กดปุ่ม "Correction" เพื่อตรวจคำตอบอีกครั้ง
+        // 4. กดปุ่ม "Correction" เพื่อตรวจคำตอบอีกครั้ง
         correctionButton = document.querySelector('.action-exercise-button.correct');
         if (correctionButton) {
             correctionButton.click();
             console.log("✅ กดปุ่ม Correction หลังจากลบเสร็จ");
         }
 
-        // หน่วงเวลา 500 มิลลิวินาทีเพื่อให้คำตอบแสดงก่อน
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // หน่วงเวลา 1 วินาทีเพื่อให้คำตอบแสดงก่อน
+        await new Promise(resolve => setTimeout(resolve, 700));
 
-        // 6. กดปุ่ม "Next" เพื่อไปยังขั้นตอนถัดไป
+        // 5. กดปุ่ม "Next" เพื่อไปยังขั้นตอนถัดไป
         let nextButton = document.querySelector('button[class*="next"]');
         if (nextButton) {
             nextButton.click();
