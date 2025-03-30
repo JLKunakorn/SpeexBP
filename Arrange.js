@@ -3,34 +3,36 @@ let items = document.querySelectorAll('.exercise-items .item');
 
 // 2. สำหรับแต่ละ item, จะทำการตรวจสอบว่ามี class "scrambled-sentence ui-sortable" หรือไม่
 items.forEach(item => {
-    let scrambledSentenceElement = item.querySelector('.scrambled-sentence');
+    // ค้นหา .scrambled-sentence ภายใน item
+    let scrambledSentenceElements = item.querySelectorAll('.scrambled-sentence');
 
-    // ถ้าไม่พบ .scrambled-sentence หรือไม่มี class "ui-sortable" ให้ข้ามไปยัง item ถัดไป
-    if (!scrambledSentenceElement || !scrambledSentenceElement.classList.contains('ui-sortable')) {
-        console.log("❌ ไม่มี class 'scrambled-sentence ui-sortable' ข้ามไปยัง item ถัดไป...");
-        return;  // ข้ามไปยัง item ถัดไป
-    }
+    scrambledSentenceElements.forEach(scrambledSentenceElement => {
+        // ตรวจสอบว่า .scrambled-sentence นี้มี class "ui-sortable"
+        if (!scrambledSentenceElement.classList.contains('ui-sortable')) {
+            return;  // ข้ามไปยัง .scrambled-sentence ถัดไป
+        }
 
-    // 3. ดึงคำใน .scrambled-block
-    let scrambledBlocks = Array.from(item.querySelectorAll('.scrambled-block'));
+        // 3. ดึงคำใน .scrambled-block ภายใน .scrambled-sentence
+        let scrambledBlocks = Array.from(scrambledSentenceElement.querySelectorAll('.scrambled-block'));
 
-    // 4. เรียงคำตาม data-scrambled-block-id
-    scrambledBlocks.sort((a, b) => {
-        let idA = a.getAttribute('data-scrambled-block-id').replace('scr-block-', '');
-        let idB = b.getAttribute('data-scrambled-block-id').replace('scr-block-', '');
-        return parseInt(idA) - parseInt(idB); // เรียงจากน้อยไปมาก
-    });
+        // 4. เรียงคำตาม data-scrambled-block-id
+        scrambledBlocks.sort((a, b) => {
+            let idA = a.getAttribute('data-scrambled-block-id').replace('scr-block-', '');
+            let idB = b.getAttribute('data-scrambled-block-id').replace('scr-block-', '');
+            return parseInt(idA) - parseInt(idB); // เรียงจากน้อยไปมาก
+        });
 
-    // 5. ลบคำที่มีอยู่ใน .scrambled-sentence ก่อน
-    scrambledSentenceElement.innerHTML = '';
+        // 5. ลบคำที่มีอยู่ใน .scrambled-sentence ก่อน
+        scrambledSentenceElement.innerHTML = '';
 
-    // 6. ใส่คำที่เรียงแล้วกลับเข้าไปใน .scrambled-sentence
-    scrambledBlocks.forEach((block) => {
-        scrambledSentenceElement.appendChild(block);
+        // 6. ใส่คำที่เรียงแล้วกลับเข้าไปใน .scrambled-sentence
+        scrambledBlocks.forEach((block) => {
+            scrambledSentenceElement.appendChild(block);
+        });
+
+        console.log("✅ เรียงคำใน .scrambled-sentence เสร็จเรียบร้อย!");
     });
 });
-
-console.log("✅ เรียงคำในแต่ละ item ตามลำดับเรียบร้อยแล้ว!");
 
 // 7. กดปุ่ม "Correction" เพื่อแสดงคำตอบที่ถูกต้อง
 let correctionButton = document.querySelector('.action-exercise-button.correct');
