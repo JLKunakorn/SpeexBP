@@ -45,7 +45,7 @@
 
                     // 5. ถ้ามี หน่วงเวลา 1.5 วินาที แล้วกด
                     console.log("หน่วงเวลา 1.5 วินาทีก่อนคลิก...");
-                    await delay(1500); // หน่วง 1.5 วินาที
+                    await delay(1000); // หน่วง 1.5 วินาที
 
                     // ตรวจสอบว่าปุ่มยังอยู่และไม่ได้ disable ก่อนคลิก
                     if (document.querySelector(nextButtonSelector) && !nextButton.disabled) {
