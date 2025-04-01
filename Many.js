@@ -1,93 +1,82 @@
-async function ManyAnswers() {
-    console.log("🚀 เริ่มต้นการปรับแต่ง .choice-item...");
-
-    // 1️⃣ หาทุก .item.choice-item ภายใน .exercise-items
-    let choiceItems = document.querySelectorAll('.exercise-items .item.choice-item');
-
-    // 2️⃣ ลบทุก .item.choice-item ยกเว้นตัวแรก
-    for (let i = 1; i < choiceItems.length; i++) {
-        choiceItems[i].remove();
+(function() {
+    // ฟังก์ชันสำหรับหน่วงเวลา
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
-    console.log("✅ ลบ .choice-item เหลือเพียง 1 ตัว");
 
-    // 🔁 ฟังก์ชันรอปุ่ม
-    async function waitForButton(selector, maxWaitTime = 5000) {
-        let elapsedTime = 0;
-        while (elapsedTime < maxWaitTime) {
-            let button = document.querySelector(selector);
-            if (button) return button;
-            console.log(`⌛ กำลังรอปุ่ม ${selector} (${elapsedTime}ms)`);
-            await new Promise(resolve => setTimeout(resolve, 300)); // รอ 300ms ก่อนเช็คใหม่
-            elapsedTime += 300;
+    async function runAutomation() {
+        console.log("เริ่มต้นทำงาน...");
+
+        // 1. ลบ element ที่มี class="exercise-items"
+        console.log("กำลังลบ elements ที่มี class 'exercise-items'...");
+        const itemsToRemove = document.querySelectorAll('.exercise-items');
+        if (itemsToRemove.length > 0) {
+            itemsToRemove.forEach(item => item.remove());
+            console.log(`ลบไป ${itemsToRemove.length} element(s) สำเร็จ`);
+        } else {
+            console.log("ไม่พบ element ที่มี class 'exercise-items' ให้ลบ");
         }
-        return null;
-    }
 
-    // 🔁 ฟังก์ชันรอ elements (เช่น .choice-option.should-be-checked)
-    async function waitForElements(selector, maxWaitTime = 5000) {
-        let elapsedTime = 0;
-        while (elapsedTime < maxWaitTime) {
-            let elements = document.querySelectorAll(selector);
-            if (elements.length > 0) return elements;
-            console.log(`⌛ กำลังรอ ${selector} (${elapsedTime}ms)`);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            elapsedTime += 300;
+        // 2. รอ 0.5 วินาที
+        console.log("รอ 0.5 วินาที...");
+        await delay(500);
+
+        // 3. คลิก class="btn btn-primary action-exercise-button correct"
+        console.log("กำลังค้นหาและคลิกปุ่ม 'correct'...");
+        const correctButton = document.querySelector('.btn.btn-primary.action-exercise-button.correct');
+        if (correctButton) {
+            correctButton.click();
+            console.log("คลิกปุ่ม 'correct' สำเร็จ");
+
+            // 4. ตรวจสอบปุ่ม 'next' ทุกๆ 0.5 วินาที เป็นเวลา 3 วินาที
+            console.log("เริ่มตรวจสอบปุ่ม 'next' ทุก 0.5 วินาที (เป็นเวลา 3 วินาที)...");
+            let foundNextButton = false;
+            const maxAttempts = 6; // 3 วินาที / 0.5 วินาทีต่อครั้ง
+            // *** ใช้ Selector ที่ตรงกับ HTML ที่ให้มา ***
+            const nextButtonSelector = '.btn.btn-primary.action-exercise-button.next.nxt-exercise';
+
+            for (let i = 0; i < maxAttempts; i++) {
+                console.log(`ตรวจสอบครั้งที่ ${i + 1} หา: ${nextButtonSelector}`);
+                const nextButton = document.querySelector(nextButtonSelector);
+
+                if (nextButton) {
+                    console.log("พบปุ่ม 'next'!", nextButton); // Log ตัว element ที่เจอด้วย
+                    foundNextButton = true;
+
+                    // 5. ถ้ามี หน่วงเวลา 1.5 วินาที แล้วกด
+                    console.log("หน่วงเวลา 1.5 วินาทีก่อนคลิก...");
+                    await delay(1500); // หน่วง 1.5 วินาที
+
+                    // ตรวจสอบว่าปุ่มยังอยู่และไม่ได้ disable ก่อนคลิก
+                    if (document.querySelector(nextButtonSelector) && !nextButton.disabled) {
+                        console.log(">>> กำลังจะคลิกปุ่ม 'next' <<<");
+                        nextButton.click();
+                        console.log("คลิกปุ่ม 'next' สำเร็จ");
+                    } else {
+                         console.warn("ปุ่ม 'next' หายไป หรือถูก disable ก่อนที่จะคลิก");
+                    }
+                    break; // ออกจาก loop เมื่อเจอปุ่มและพยายามคลิกแล้ว
+                }
+                // รออีก 0.5 วินาทีก่อนตรวจสอบครั้งถัดไป (ยกเว้นครั้งสุดท้าย)
+                if (i < maxAttempts - 1) {
+                    await delay(500);
+                }
+            }
+
+            if (!foundNextButton) {
+                console.warn(`ไม่พบปุ่ม 'next' (${nextButtonSelector}) ภายใน 3 วินาที`);
+            }
+
+        } else {
+            console.error("ไม่พบปุ่ม 'correct' (class='btn btn-primary action-exercise-button correct')");
         }
-        return [];
+
+        console.log("ทำงานเสร็จสิ้น");
     }
 
-    // 3️⃣ กดปุ่ม "Correction"
-    let correctionButton = await waitForButton('.action-exercise-button.correct');
-    if (correctionButton) {
-        correctionButton.click();
-        console.log("✅ กด Correction เพื่อตรวจคำตอบ");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Correction!");
-        return;
-    }
-
-    // 4️⃣ **รอให้ .choice-option.should-be-checked โผล่มา**
-    let checkedOptions = await waitForElements('.item.choice-item .choice-option.should-be-checked', 5000);
-
-    if (checkedOptions.length === 0) {
-        console.log("❌ ไม่พบตัวเลือกที่ต้องกดหลังจาก Correction!");
-        return;
-    }
-
-    // 5️⃣ กดทุก `.choice-option.should-be-checked`
-    checkedOptions.forEach(option => {
-        let checkbox = option.querySelector('input.choice');
-        if (checkbox) {
-            checkbox.click();
-            console.log(`✅ กดตัวเลือก: ${option.innerText.trim()}`);
-        }
+    // เรียกใช้ฟังก์ชันหลัก
+    runAutomation().catch(error => {
+        console.error("เกิดข้อผิดพลาดในการทำงาน:", error);
     });
 
-    // 6️⃣ กดปุ่ม "Correction" อีกครั้ง
-    correctionButton = await waitForButton('.action-exercise-button.correct');
-    if (correctionButton) {
-        correctionButton.click();
-        console.log("✅ กด Correction เพื่อตรวจคำตอบอีกครั้ง");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Correction อีกครั้ง!");
-        return;
-    }
-
-    // 7️⃣ หน่วงเวลา 400 - 800 ms (ลดลงจาก 500 - 1000 ms)
-    let waitTime = Math.random() * (800 - 400) + 400;
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-
-    // 8️⃣ กดปุ่ม Next
-    let nextButton = await waitForButton(".action-exercise-button.next");
-    if (nextButton) {
-        nextButton.click();
-        console.log("➡️ กด Next ไปยังขั้นตอนถัดไป...");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Next!");
-    }
-
-    console.log("🎉 เสร็จสิ้นกระบวนการ ManyAnswers!");
-}
-
-// 🔥 เรียกใช้งานฟังก์ชัน `ManyAnswers();`
-ManyAnswers();
+})();
