@@ -1,9 +1,10 @@
-const btn = document.querySelector(
-  '.practice-box-foot button.call-to-action:not(.ml-auto)[tabindex="-1"]'
+const startBtn = document.querySelector(
+  '.practice-box-lesson .practice-box-foot button.call-to-action[tabindex="-1"]'
 );
-if (btn) {
-  btn.click();
-  console.log('✅ คลิกปุ่ม Start now สำเร็จ!');
+
+if (startBtn) {
+  startBtn.click();
+  console.log('✅ คลิกปุ่ม Start now ใน lesson สำเร็จ!');
 } else {
-  console.warn('❌ ไม่พบปุ่ม Start now ที่ต้องการ');
+  console.warn('❌ ไม่พบปุ่ม Start now ใน lesson');
 }
