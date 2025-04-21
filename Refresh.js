@@ -51,7 +51,7 @@ async function doCorrection(delay = 500) {
 }
 
 // 3. แก้ไขเฉพาะข้อผิด
-async function fixIncorrect(loopDelay = 10, maxRetries = 20) {
+async function fixIncorrect(loopDelay = 5, maxRetries = 50) {
   let tries = 0;
   while (tries < maxRetries) {
     const wrongs = document.querySelectorAll(".input-group.has-error");
