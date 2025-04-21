@@ -27,9 +27,9 @@ async function clickAndLog(selector, label, timeout) {
 // —— Core functions ——
 
 // 1. สุ่มทุกข้อพร้อมกัน  
-async function doRefreshAll(delay = 5) {  
+async function doRefreshAll(delay = 100) {  
   const buttons = document.querySelectorAll(".halflings-icon.refresh");  
-  console.log(`🔄 [Refresh] สุ่ม ${buttons.length} ช่อง...`);  
+  console.log(`🔄 [Refresh] กำลังสุ่ม ${buttons.length} ช่อง...`);  
   for (let btn of buttons) {  
     btn.click();  
     await wait(delay);  
@@ -37,20 +37,20 @@ async function doRefreshAll(delay = 5) {
 }
 
 // 2. คลิก Correction  
-async function doCorrection(delay = 200) {  
+async function doCorrection(delay = 1000) {  
   console.log("🎯 [Refresh] กด Correction...");  
-  const ok = await clickAndLog(".action-exercise-button.correct", "ปุ่ม Correction", 2000);  
+  const ok = await clickAndLog(".action-exercise-button.correct", "ปุ่ม Correction", 3000);  
   if (ok) await wait(delay);  
   return ok;  
 }
 
 // 3. แก้ไขเฉพาะข้อผิด (ไม่มีลิมิต)  
-async function fixIncorrect(loopDelay = 5) {  
+async function fixIncorrect(loopDelay = 10) {  
   let wrongs;  
   do {  
     wrongs = Array.from(document.querySelectorAll(".input-group.has-error"));  
     if (wrongs.length) {  
-      console.log(`❌ [Refresh] พบข้อผิด ${wrongs.length} ข้อ → สุ่มใหม่`);  
+      console.log(`❌ [Refresh] พบข้อผิด ${wrongs.length} ข้อ → กำลังสุ่มใหม่...`);  
       for (let q of wrongs) {  
         const btn = q.querySelector(".halflings-icon.refresh");  
         if (btn) {  
@@ -62,45 +62,25 @@ async function fixIncorrect(loopDelay = 5) {
       await doCorrection();  
     }  
   } while (wrongs.length);  
-  console.log("🎉 ทุกข้อถูกต้องแล้ว!");  
+  console.log("🎉 [Refresh] ทุกข้อถูกต้องแล้ว!");  
 }
 
 // 4. ไป Next  
-async function goNext(timeout = 2000) {  
-  console.log("➡️ รอกด Next...");  
+async function goNext(timeout = 5000) {  
+  console.log("➡️ รอปุ่ม Next...");  
   const ok = await clickAndLog(".action-exercise-button.next", "ปุ่ม Next", timeout);  
+  if (ok) await wait(1000);  
   return ok;  
 }
 
 // —— Main ——  
 async function refreshSolve() {  
-  console.log("🚀 เริ่ม refreshSolve() (เร็วขึ้น)");  
-  // 1. สุ่มทั้งหมด  
+  console.log("🚀 เริ่ม refreshSolve()");  
   await doRefreshAll();  
-  // 2. กด Correction ถ้าเจอ  
   if (!await doCorrection()) return;  
-  // 3. ลบข้อผิดจนหมด  
   await fixIncorrect();  
-  // 4. กด Next  
-  const nextClicked = await goNext();  
-  if (!nextClicked) return;  
-
-  // 5. รอ 0.5 วิ หลัง Next  
-  await wait(500);
-
-  // 6. ตรวจหา Continue learning  
-  const cont = document.querySelector('.btn.btn-primary.next[tabindex="0"]');
-  if (cont && cont.innerText.includes('Continue learning')) {
-    console.log('➡️ พบ Continue learning');
-    await wait(800);  // รอ 0.8 วิ ก่อนคลิก
-    cont.click();
-    console.log('✅ คลิก Continue learning');
-    await wait(500);  // รอ 0.5 วิ หลังคลิก
-  }
-
-  // 7. รีเฟรชหน้า  
-  location.reload();  
-  console.log("🔄 รีเฟรชหน้าแล้ว");
+  await goNext();  
+  console.log("✅ จบ refreshSolve()");  
 }
 
 refreshSolve();
