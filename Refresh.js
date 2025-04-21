@@ -27,7 +27,7 @@ async function clickAndLog(selector, label, timeout) {
 // —— Core functions ——
 
 // 1. สุ่มทุกข้อพร้อมกัน  
-async function doRefreshAll(delay = 100) {  
+async function doRefreshAll(delay = 10) {  
   const buttons = document.querySelectorAll(".halflings-icon.refresh");  
   console.log(`🔄 [Refresh] กำลังสุ่ม ${buttons.length} ช่อง...`);  
   for (let btn of buttons) {  
