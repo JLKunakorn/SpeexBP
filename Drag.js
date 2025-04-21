@@ -19,8 +19,8 @@ setTimeout(() => {
 
     // เรียงลำดับจากตัวเลขน้อยไปมาก ตามค่า data-drag-drop-id
     draggableElements.sort((a, b) => {
-        let idA = parseInt(a.getAttribute('data-drag-drop-id').replace('drag-drop-', ''), 10);
-        let idB = parseInt(b.getAttribute('data-drag-drop-id').replace('drag-drop-', ''), 10);
+        let idA = parseInt(a.getAttribute('data-drag-drop-id').replace('drag-drop-', ''), 0);
+        let idB = parseInt(b.getAttribute('data-drag-drop-id').replace('drag-drop-', ''), 0);
         return idA - idB;
     });
 
