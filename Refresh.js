@@ -16,10 +16,10 @@ async function clickAndLog(selector, label, timeout) {
   }
   if (btn) {
     btn.click();
-    console.log(✅ ${label});
+    console.log(`✅ ${label}`);
     return true;
   } else {
-    console.warn(❌ ไม่พบ ${label});
+    console.warn(`❌ ไม่พบ ${label}`);
     return false;
   }
 }
@@ -30,18 +30,15 @@ function getScore() {
 }
 
 // —— Core functions ——  
-
-// 1. สุ่มทุกข้อพร้อมกัน  
 async function doRefreshAll(delay = 10) {  
   const buttons = document.querySelectorAll(".halflings-icon.refresh");  
-  console.log(🔄 [Refresh] กำลังสุ่ม ${buttons.length} ช่อง...);  
+  console.log(`🔄 [Refresh] กำลังสุ่ม ${buttons.length} ช่อง...`);  
   for (let btn of buttons) {  
     btn.click();  
     await wait(delay);  
   }  
 }
 
-// 2. คลิก Correction  
 async function doCorrection(delay = 1000) {  
   console.log("🎯 [Refresh] กด Correction...");  
   const ok = await clickAndLog(".action-exercise-button.correct", "ปุ่ม Correction", 3000);  
@@ -49,13 +46,12 @@ async function doCorrection(delay = 1000) {
   return ok;  
 }
 
-// 3. แก้ไขเฉพาะข้อผิด (ไม่มีลิมิต)  
 async function fixIncorrect(loopDelay = 10) {  
   let wrongs;  
   do {  
     wrongs = Array.from(document.querySelectorAll(".input-group.has-error"));  
     if (wrongs.length) {  
-      console.log(❌ [Refresh] พบข้อผิด ${wrongs.length} ข้อ → กำลังสุ่มใหม่...);  
+      console.log(`❌ [Refresh] พบข้อผิด ${wrongs.length} ข้อ → กำลังสุ่มใหม่...`);  
       for (let q of wrongs) {  
         const btn = q.querySelector(".halflings-icon.refresh");  
         if (btn) {  
@@ -69,7 +65,6 @@ async function fixIncorrect(loopDelay = 10) {
   console.log("🎉 [Refresh] ทุกข้อถูกต้องแล้ว!");  
 }
 
-// 4. ไป Next  
 async function goNext(timeout = 5000) {  
   console.log("➡️ รอปุ่ม Next...");  
   const ok = await clickAndLog(".action-exercise-button.next", "ปุ่ม Next", timeout);  
@@ -78,7 +73,8 @@ async function goNext(timeout = 5000) {
 }
 
 // —— Main ——  
-async function refreshSolve() {  
+async function refreshSolve() {
+  window.isRefreshRunning = true; // ✅ แจ้งระบบหลักว่ากำลังทำงานอยู่
   console.log("🚀 เริ่ม refreshSolve()");
 
   let score = 0;
@@ -86,17 +82,18 @@ async function refreshSolve() {
   const maxAttempts = 5;
 
   while (score < 100 && attempts < maxAttempts) {
-    console.log(🔁 Attempt #${attempts + 1});
+    console.log(`🔁 Attempt #${attempts + 1}`);
     await doRefreshAll();  
     const corrected = await doCorrection();  
     if (!corrected) {
       console.warn("❌ ไม่สามารถกด Correction ได้");
+      window.isRefreshRunning = false;
       return;
     }
 
     await fixIncorrect();  
     score = getScore();
-    console.log(📊 คะแนนปัจจุบัน: ${score});
+    console.log(`📊 คะแนนปัจจุบัน: ${score}`);
     attempts++;
   }
 
@@ -105,8 +102,10 @@ async function refreshSolve() {
     await goNext();  
     console.log("✅ จบ refreshSolve()");
   } else {
-    console.warn(⚠️ ทำซ้ำ ${attempts} ครั้งแล้วยังไม่ได้คะแนนเต็ม (คะแนน: ${score}));
+    console.warn(`⚠️ ทำซ้ำ ${attempts} ครั้งแล้วยังไม่ได้คะแนนเต็ม (คะแนน: ${score})`);
   }
+
+  window.isRefreshRunning = false; // ✅ จบงานแล้ว รีเซตสถานะ
 }
 
 refreshSolve();
