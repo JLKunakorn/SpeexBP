@@ -24,7 +24,12 @@ async function clickAndLog(selector, label, timeout) {
   }
 }
 
-// —— Core functions ——
+function getScore() {
+  const el = document.querySelector(".result-badge-text");
+  return el ? parseInt(el.dataset.result || "0", 10) : 0;
+}
+
+// —— Core functions ——  
 
 // 1. สุ่มทุกข้อพร้อมกัน  
 async function doRefreshAll(delay = 10) {  
@@ -58,7 +63,6 @@ async function fixIncorrect(loopDelay = 10) {
           await wait(loopDelay);  
         }  
       }  
-      // กด Correction ซ้ำ  
       await doCorrection();  
     }  
   } while (wrongs.length);  
@@ -75,12 +79,34 @@ async function goNext(timeout = 5000) {
 
 // —— Main ——  
 async function refreshSolve() {  
-  console.log("🚀 เริ่ม refreshSolve()");  
-  await doRefreshAll();  
-  if (!await doCorrection()) return;  
-  await fixIncorrect();  
-  await goNext();  
-  console.log("✅ จบ refreshSolve()");  
+  console.log("🚀 เริ่ม refreshSolve()");
+
+  let score = 0;
+  let attempts = 0;
+  const maxAttempts = 5;
+
+  while (score < 100 && attempts < maxAttempts) {
+    console.log(`🔁 Attempt #${attempts + 1}`);
+    await doRefreshAll();  
+    const corrected = await doCorrection();  
+    if (!corrected) {
+      console.warn("❌ ไม่สามารถกด Correction ได้");
+      return;
+    }
+
+    await fixIncorrect();  
+    score = getScore();
+    console.log(`📊 คะแนนปัจจุบัน: ${score}`);
+    attempts++;
+  }
+
+  if (score >= 100) {
+    console.log("🏆 ได้คะแนนเต็ม 100 แล้ว!");
+    await goNext();  
+    console.log("✅ จบ refreshSolve()");
+  } else {
+    console.warn(`⚠️ ทำซ้ำ ${attempts} ครั้งแล้วยังไม่ได้คะแนนเต็ม (คะแนน: ${score})`);
+  }
 }
 
 refreshSolve();
