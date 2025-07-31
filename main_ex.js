@@ -1,5 +1,6 @@
 // === รวมชุดข้อมูล script ทั้งหมด ===
 // โครงสร้างข้อมูลหลักที่เก็บ URL ของรูปภาพและสคริปต์ที่เกี่ยวข้องสำหรับแต่ละบทเรียน
+(function() {
 const exercises = {
     'A1': {
         "https://d2d81dmxsitsnp.cloudfront.net/static/image/161452.jpg": "https://raw.githubusercontent.com/JLKunakorn/SP-A1/main/Darg2.js",
@@ -196,3 +197,5 @@ function runScript() {
 }
 
 button.addEventListener('click', runScript);
+
+})();
