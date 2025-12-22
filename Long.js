@@ -1,59 +1,44 @@
-async function solveAndClick() {
-  console.log("🎯 กำลังกดปุ่ม Correction เพื่อแสดงคำตอบที่ถูกต้อง...");
+// Long.js - Pro Edition (Simulation Mode)
+(async () => {
+    console.log("🚀 [JL] Long.js: Simulation Mode Active");
 
-  // 1. กดปุ่ม "Correction"
-  let correctionButton = document.querySelector('.action-exercise-button.correct');
-  if (correctionButton) {
-    correctionButton.click();
-    console.log("✅ กด Correction เพื่อตรวจคำตอบ");
-  } else {
-    console.log("❌ ไม่พบปุ่ม Correction!");
-    return;
-  }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
 
-  // รอให้คำตอบแสดง
-  await new Promise(resolve => setTimeout(resolve, 700));
+    // 1. เรียงลำดับคำตอบตาม ID (data-scrambled-cell-id) จากน้อยไปมาก
+    const sortedCells = [...document.querySelectorAll('.scrambled-cell')]
+        .sort((a, b) => {
+            const getID = el => parseInt(el.dataset.scrambledCellId.match(/\d+/)[0], 10);
+            return getID(a) - getID(b);
+        });
 
-  // 2. ตรวจเช็คทุก element ที่มี class ตามที่ระบุ
-  let scrambledCells = document.querySelectorAll('.scrambled-cell.ui-state-default.ui-draggable.ui-draggable-handle.ui-droppable');
-  let successFound = false;
+    const containers = document.querySelectorAll('.scrambled-cell-container');
+    if (sortedCells.length === 0) return;
 
-  scrambledCells.forEach(cell => {
-    if (cell.classList.contains('success')) {
-      successFound = true;
-    } else {
-      cell.remove();  // ลบ element ที่ไม่มี success
+    // 2. จำลองการคลิกวางตามลำดับพิกัดที่ถูกต้อง
+    console.log("🖱️ [JL] Matching containers with sorted IDs...");
+    for (let i = 0; i < sortedCells.length; i++) {
+        if (containers[i] && sortedCells[i]) {
+            containers[i].click(); // คลิกช่องรับ
+            await wait(100);
+            sortedCells[i].click(); // คลิกคำตอบที่ ID ตรงกัน
+            await wait(150);
+        }
     }
-  });
 
-  // หน่วงเวลา 1 วินาทีหลังจากลบ element เพื่อให้เห็นผล
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // 3. กรณีไม่พบคำที่ถูกต้องเลย ให้รีเฟรชหน้าเว็บ
-  if (!successFound) {
-    console.log("❌ ไม่พบคำตอบที่ถูกต้อง! กำลังรีเฟรชหน้าเว็บ...");
-    window.location.reload();
-    return;
-  }
-
-  // 4. หากเจอคำถูกต้องแล้ว ให้กด Correction อีกครั้ง
-  console.log("🎉 พบคำที่ถูกต้องแล้ว!");
-  correctionButton = document.querySelector('.action-exercise-button.correct');
-  if (correctionButton) {
-    correctionButton.click();
-    console.log("✅ กดปุ่ม Correction หลังจากลบเสร็จ");
-  }
-  await new Promise(resolve => setTimeout(resolve, 700));
-
-  // 5. กดปุ่ม "Next" เพื่อไปยังขั้นตอนถัดไป
-  let nextButton = document.querySelector('button[class*="next"]');
-  if (nextButton) {
-    nextButton.click();
-    console.log("✅ กดปุ่ม Next เพื่อไปยังขั้นตอนถัดไป");
-  } else {
-    console.log("❌ ไม่พบปุ่ม Next!");
-  }
-}
-
-// เรียกใช้งานฟังก์ชัน
-solveAndClick();
+    // 3. ส่งคำตอบ
+    await wait(500);
+    const correctBtn = document.querySelector('.action-exercise-button.correct');
+    if (correctBtn) {
+        correctBtn.click();
+        
+        // รอจนกว่าปุ่ม Next จะปรากฏ
+        const obs = new MutationObserver((_, o) => {
+            const next = document.querySelector('.action-exercise-button.next');
+            if (next && next.offsetWidth > 0) {
+                next.click();
+                o.disconnect();
+            }
+        });
+        obs.observe(document.body, { attributes: true, childList: true, subtree: true });
+    }
+})();
