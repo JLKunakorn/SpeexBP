@@ -1,127 +1,93 @@
-async function solveAndCheck() {
-    console.log("🎯 เริ่มทำงาน...");
+// ST.js - Pro Edition (Precision Cycle)
+(async () => {
+    console.log("🚀 [JL] ST Mode: Full Solution Cycle Active");
 
-    // 2. กดปุ่ม Start
-    let startButton = document.querySelector('.btn.btn-primary.start-exercise');
-    if (startButton) {
-        startButton.click();
-        console.log("✅ กด Start เพื่อเริ่มการทำงาน");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Start!");
-        return;
-    }
-
-    // 3. กดปุ่ม Correction
-    let correctionButton = document.querySelector('.action-exercise-button.correct');
-    if (correctionButton) {
-        correctionButton.click();
-        console.log("✅ กด Correction เพื่อตรวจคำตอบ");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Correction!");
-        return;
-    }
-
-    // 4. หน่วงเวลา 1 วินาที
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // 5. กดปุ่ม Solution
-    let solutionButton = document.querySelector('button.btn-link.solution');
-    if (solutionButton) {
-        solutionButton.click();
-        console.log("✅ กด Solution");
-
-        // 6. เก็บคำตอบ
-        let answers = [];
-        let answerFields = document.querySelectorAll('.answer.form-control');
-        
-        if (answerFields.length === 0) {
-            console.log("❌ ไม่พบช่องกรอกคำตอบ!");
-            return;
-        }
-
-        answerFields.forEach(field => {
-            answers.push(field.value);
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const getBtn = (sel) => document.querySelector(sel);
+    
+    // ฟังก์ชันรอ Element แบบไม่กินแรม (MutationObserver)
+    const waitFor = (sel, timeout = 10000) => new Promise(res => {
+        const el = document.querySelector(sel);
+        if (el) return res(el);
+        const obs = new MutationObserver(() => {
+            const target = document.querySelector(sel);
+            if (target) { res(target); obs.disconnect(); }
         });
+        obs.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => { obs.disconnect(); res(null); }, timeout);
+    });
 
-        console.log("📝 คำตอบที่เก็บ: ", answers);
+    const runST = async () => {
+        // 1. กด Start ครั้งแรก
+        const startBtn = await waitFor('.btn.btn-primary.start-exercise');
+        if (startBtn) {
+            startBtn.click();
+            console.log("✅ Start clicked");
+        } else return console.log("❌ Start button not found");
 
-        // 7. กดปุ่ม Repeat เพื่อเริ่มใหม่
-        let repeatButton = document.querySelector('button[class*="repeat"]');
-        if (repeatButton) {
-            repeatButton.click();
-            console.log("✅ กด Repeat");
-        } else {
-            console.log("❌ ไม่พบปุ่ม Repeat!");
-            return;
+        // 2. กด Correction เพื่อเปิดปุ่ม Solution
+        const correctBtn = await waitFor('.action-exercise-button.correct');
+        if (correctBtn) {
+            await wait(400); // หน่วงนิดหน่อยให้ระบบพร้อม
+            correctBtn.click();
+            console.log("✅ Correction clicked");
         }
 
-        // 8. หน่วงเวลา 0.5 วินาที
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 3. รอและกด Solution
+        const solutionBtn = await waitFor('button.btn-link.solution');
+        if (!solutionBtn) return console.log("❌ Solution button not found");
+        solutionBtn.click();
+        console.log("✅ Solution clicked");
+        await wait(800);
 
-        // 9. กดปุ่ม Start อีกครั้ง โดยอัตโนมัติ
-        startButton = document.querySelector('.btn.btn-primary.start-exercise');
-        if (startButton) {
-            startButton.click();
-            console.log("✅ กด Start อีกครั้งเพื่อเริ่มใหม่");
-        } else {
-            console.log("❌ ไม่พบปุ่ม Start อีกครั้ง!");
-            return;
+        // 4. เก็บคำตอบลง Memory
+        const answerFields = document.querySelectorAll('.answer.form-control');
+        const answers = Array.from(answerFields).map(f => f.value);
+        console.log("📝 Memorized answers:", answers);
+
+        if (answers.length === 0) return console.log("❌ No answers found");
+
+        // 5. กด Repeat เพื่อเริ่มรอบใหม่
+        const repeatBtn = getBtn('button[class*="repeat"]');
+        if (repeatBtn) {
+            repeatBtn.click();
+            console.log("✅ Repeat clicked");
         }
 
-        // 10. รอจนกว่าจะพบช่องกรอกคำตอบ
-        await waitForElement('.answer.form-control');
+        // 6. รอและกด Start อีกครั้งหลังจาก Repeat
+        const reStartBtn = await waitFor('.btn.btn-primary.start-exercise');
+        if (reStartBtn) {
+            await wait(400);
+            reStartBtn.click();
+            console.log("✅ Start (Round 2) clicked");
+        }
 
-        // 11. เติมคำตอบที่เก็บไว้
-        let blanks = document.querySelectorAll('.answer.form-control');
-        await Promise.all(Array.from(blanks).map((blank, index) => {
-            if (answers[index]) {
-                blank.value = answers[index]; // เติมคำตอบที่เก็บไว้
-                console.log(`✅ เติมคำตอบ '${answers[index]}' ในช่องที่ ${index + 1}`);
+        // 7. เติมคำตอบที่จำไว้ (พร้อมยิง Event ครบชุด)
+        await waitFor('.answer.form-control');
+        const blanks = document.querySelectorAll('.answer.form-control');
+        blanks.forEach((input, i) => {
+            if (answers[i]) {
+                input.value = answers[i];
+                // ยิง Event เพื่อให้ระบบยอมรับค่าว่ามีการพิมพ์จริง
+                ['input', 'change', 'blur'].forEach(ev => 
+                    input.dispatchEvent(new Event(ev, { bubbles: true }))
+                );
             }
-        }));
+        });
+        console.log("🎯 All answers injected");
 
-        // 12. กดปุ่ม Correction อีกครั้ง
-        correctionButton = document.querySelector('.action-exercise-button.correct');
-        if (correctionButton) {
-            correctionButton.click();
-            console.log("✅ กด Correction เพื่อตรวจคำตอบอีกครั้ง");
-        } else {
-            console.log("❌ ไม่พบปุ่ม Correction อีกครั้ง!");
+        // 8. ขั้นตอนสุดท้าย: ตรวจและไปต่อ
+        await wait(600);
+        getBtn('.action-exercise-button.correct')?.click();
+        
+        // รอจนกว่าปุ่ม Next จะพร้อมกด
+        const nextBtn = await waitFor(".action-exercise-button.next");
+        if (nextBtn) {
+            await wait(1500); // รอ animation ตรวจคำตอบเสร็จ
+            nextBtn.click();
+            console.log("🎉 ST Process Finished: Next Page!");
         }
+    };
 
-        // 13. หน่วงเวลา 1 วินาที
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 14. กดปุ่ม Next เพื่อไปยังขั้นตอนถัดไป
-        let nextButton = document.querySelector(".action-exercise-button.next");
-        if (nextButton) {
-            nextButton.click();
-            console.log("➡️ กด Next ไปยังขั้นตอนถัดไป...");
-        } else {
-            console.log("❌ ไม่พบปุ่ม Next!");
-        }
-
-        console.log("🎉 เสร็จสิ้นการกดปุ่ม Start, กรอกคำตอบ, กด Next, กด Correction, Solution, Repeat และ Next!");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Solution!");
-    }
-}
-
-// ฟังก์ชันที่จะรอจนกว่าจะพบช่องกรอกคำตอบ
-async function waitForElement(selector, timeout = 10000) {
-    const startTime = Date.now();
-    let element = null;
-    while (!element) {
-        element = document.querySelector(selector);
-        if (element) break;
-        if (Date.now() - startTime > timeout) {
-            console.log("❌ หมดเวลาในการรอพบช่องกรอกคำตอบ!");
-            return null;
-        }
-        await new Promise(resolve => setTimeout(resolve, 500)); // รอ 0.5 วินาที แล้วลองใหม่
-    }
-    return document.querySelectorAll(selector);
-}
-
-// เรียกใช้งานฟังก์ชัน
-solveAndCheck();
+    runST();
+})();
