@@ -1,57 +1,67 @@
-// Long.js - Pro Edition (Simulation Mode)
-// ปรับปรุงใหม่: ใช้การ Sort ID และจำลองการคลิกเพื่อความแม่นยำ 100%
+// Long.js - Pro Edition (v6.2 - DOM Transfer)
 (async () => {
-    console.log("🚀 [JL] Long.js: Simulation Mode Active");
+    console.log("🚀 [JL] Long.js: DOM Transfer Mode Active");
 
     const wait = ms => new Promise(r => setTimeout(r, ms));
 
-    // 1. เรียงลำดับคำตอบตาม ID (data-scrambled-cell-id) จากน้อยไปมาก
-    const sortedCells = [...document.querySelectorAll('.scrambled-cell')]
-        .sort((a, b) => {
-            const idMatchA = a.dataset.scrambledCellId.match(/\d+/);
-            const idMatchB = b.dataset.scrambledCellId.match(/\d+/);
-            const idA = idMatchA ? parseInt(idMatchA[0], 10) : 0;
-            const idB = idMatchB ? parseInt(idMatchB[0], 10) : 0;
-            return idA - idB;
-        });
+    // 0. ฟังก์ชันช่วยดึง ID
+    const getID = el => {
+        const match = el.dataset.scrambledCellId?.match(/\d+/);
+        return match ? parseInt(match[0], 10) : 999;
+    };
 
-    const containers = document.querySelectorAll('.scrambled-cell-container');
+    // 1. รวบรวมข้อมูล
+    const cells = [...document.querySelectorAll('.scrambled-cell')];
+    const containers = [...document.querySelectorAll('.scrambled-cell-container')];
     
-    if (sortedCells.length === 0) {
-        console.warn("❌ [JL] No scrambled cells found.");
-        return;
+    if (cells.length === 0 || containers.length === 0) {
+        return console.warn("❌ [JL] No exercise elements found.");
     }
 
-    // 2. จำลองการคลิกวางตามลำดับ (Simulation)
-    console.log(`🖱️ [JL] Matching ${sortedCells.length} containers...`);
-    for (let i = 0; i < sortedCells.length; i++) {
-        if (containers[i] && sortedCells[i]) {
-            containers[i].click(); // คลิกช่องรับ (Target)
-            await wait(100);
-            sortedCells[i].click(); // คลิกคำตอบที่ถูกต้อง (Source)
-            await wait(150);
+    // 2. เรียงลำดับคำตอบตาม ID จากน้อยไปมาก
+    const sortedCells = cells.sort((a, b) => getID(a) - getID(b));
+
+    // 3. ปฏิบัติการ "ย้ายบ้าน" (AppendChild)
+    console.log(`📦 [JL] Transferring ${sortedCells.length} items...`);
+    sortedCells.forEach((cell, i) => {
+        if (containers[i]) {
+            // ย้าย Element เข้าไปในช่องตรงๆ
+            containers[i].appendChild(cell);
+            
+            // รีเซ็ต Style เพื่อให้แสดงผลในช่องได้อย่างถูกต้อง
+            cell.style.position = "relative"; 
+            cell.style.top = "0px";
+            cell.style.left = "0px";
+            cell.style.opacity = "1";
+            cell.style.zIndex = "auto";
         }
-    }
+    });
 
-    // 3. ส่งคำตอบ (Correction)
-    await wait(500);
-    const correctBtn = document.querySelector('.action-exercise-button.correct');
-    if (correctBtn) {
+    // 4. ขั้นตอนการส่งคำตอบและไปต่อ
+    console.log("⏳ [JL] Finalizing...");
+    await wait(800); // รอให้ UI อัปเดตสถานะภายในเล็กน้อย
+
+    // กดปุ่ม Correction (ใช้ Selector จาก Bottom Bar ที่แม่นยำที่สุด)
+    const correctBtn = document.querySelector('.exercise-bottom-bar-main .action-exercise-button.correct');
+    if (correctBtn && !correctBtn.disabled) {
         correctBtn.click();
         console.log("✅ [JL] Correction triggered.");
-        
-        // 4. รอจนกว่าปุ่ม Next จะปรากฏและพร้อมกด (Smart Waiting)
-        const obs = new MutationObserver((_, o) => {
-            const next = document.querySelector('.action-exercise-button.next, button[class*="next"]');
-            if (next && next.offsetWidth > 0 && !next.disabled) {
-                next.click();
-                console.log("➡️ [JL] Next Clicked!");
-                o.disconnect();
+
+        // ใช้ MutationObserver เพื่อกด Next ทันทีที่ระบบตรวจเสร็จ (ไวที่สุด)
+        const nextObs = new MutationObserver((_, obs) => {
+            const nextBtn = document.querySelector('.exercise-bottom-bar-main .action-exercise-button.next.nxt-exercise');
+            if (nextBtn && !nextBtn.disabled && nextBtn.offsetWidth > 0) {
+                nextBtn.click();
+                console.log("➡️ [JL] Next page triggered!");
+                obs.disconnect();
             }
         });
-        obs.observe(document.body, { attributes: true, childList: true, subtree: true });
+
+        nextObs.observe(document.body, { attributes: true, childList: true, subtree: true });
         
-        // Safety timeout ป้องกันสคริปต์ค้าง
-        setTimeout(() => obs.disconnect(), 8000);
+        // Safety Timeout (ถ้าผ่านไป 8 วินาทีแล้วไม่ขยับ ให้ปิดตัวเฝ้าดู)
+        setTimeout(() => nextObs.disconnect(), 8000);
+    } else {
+        console.warn("⚠️ [JL] Correction button not found or disabled.");
     }
 })();
