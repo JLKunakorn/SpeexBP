@@ -1,19 +1,36 @@
-function clickNextButton() {
-    // ค้นหาทุกปุ่มที่มี 'next' และ 'nxt-exercise' ใน class
-    let buttons = document.querySelectorAll('.action-exercise-button.next.nxt-exercise');
+// Next.js - Pro Edition
+(async () => {
+    // รวม Selector ทุกรูปแบบที่ Speexx ใช้สำหรับปุ่มไปต่อ
+    const NEXT_SELECTOR = '.action-exercise-button.next, .nxt-exercise, .btn-primary.next, button[class*="next"]';
 
-    // ค้นหาปุ่มที่มี span ที่มีข้อความ "Next"
-    let nextButton = Array.from(buttons).find(button => 
-        button.innerText.trim().includes("Next")
-    );
+    const clickNext = () => {
+        const btn = document.querySelector(NEXT_SELECTOR);
+        
+        // เงื่อนไข: ต้องมีปุ่ม, ปุ่มต้องไม่ถูกปิดใช้งาน (disabled), และต้องมองเห็นได้ (offsetWidth > 0)
+        if (btn && !btn.disabled && btn.offsetWidth > 0) {
+            // ตรวจสอบข้อความภายในเพื่อความแม่นยำ (รองรับหลายภาษา)
+            if (/next|ต่อ|continue|suivant|weiter/i.test(btn.innerText)) {
+                btn.click();
+                console.log("✅ [JL] Next/Continue triggered");
+                return true;
+            }
+        }
+        return false;
+    };
 
-    if (nextButton) {
-        nextButton.click();
-        console.log("✅ กดปุ่ม Next สำเร็จ!");
-    } else {
-        console.log("❌ ไม่พบปุ่ม Next!");
-    }
-}
+    // 1. ลองคลิกทันที
+    if (clickNext()) return;
 
-// เรียกใช้งานฟังก์ชัน
-clickNextButton();
+    // 2. ถ้าคลิกไม่ได้ (เช่น ปุ่มยังโหลดไม่เสร็จ) ให้เฝ้าดูการเปลี่ยนแปลง
+    console.log("🔍 [JL] Next button not ready, monitoring...");
+    const obs = new MutationObserver(() => {
+        if (clickNext()) {
+            obs.disconnect();
+        }
+    });
+
+    obs.observe(document.body, { attributes: true, childList: true, subtree: true });
+
+    // ป้องกันสคริปต์ค้างถ้าหน้าเว็บ Error
+    setTimeout(() => obs.disconnect(), 6000);
+})();
