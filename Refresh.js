@@ -1,111 +1,36 @@
-// —— Helpers ——  
-function wait(ms) {  
-  return new Promise(r => setTimeout(r, ms));  
-}
+// Refresh.js - Pro Edition (Safe Cycle)
+(async () => {
+    console.log("🔄 [JL] Refresh Mode: Safe Brute Force Active");
+    
+    const MAX_ATTEMPTS = 15; // ป้องกันการสุ่มไม่จบสิ้น
+    let attempts = 0;
 
-async function clickAndLog(selector, label, timeout) {
-  let btn;
-  if (timeout) {
-    const start = Date.now();
-    while (!btn && Date.now() - start < timeout) {
-      btn = document.querySelector(selector);
-      if (!btn) await wait(50);
-    }
-  } else {
-    btn = document.querySelector(selector);
-  }
-  if (btn) {
-    btn.click();
-    console.log(`✅ ${label}`);
-    return true;
-  } else {
-    console.warn(`❌ ไม่พบ ${label}`);
-    return false;
-  }
-}
+    const getScore = () => {
+        const el = document.querySelector(".result-badge-text");
+        return el ? parseInt(el.dataset.result || "0", 10) : 0;
+    };
 
-function getScore() {
-  const el = document.querySelector(".result-badge-text");
-  return el ? parseInt(el.dataset.result || "0", 10) : 0;
-}
+    const solveCycle = async () => {
+        if (attempts >= MAX_ATTEMPTS || getScore() >= 100) {
+            console.log("🏆 [JL] Refresh Complete or Max Attempts reached.");
+            document.querySelector('.action-exercise-button.next')?.click();
+            return;
+        }
 
-// —— Core functions ——  
-async function doRefreshAll(delay = 10) {  
-  const buttons = document.querySelectorAll(".halflings-icon.refresh");  
-  console.log(`🔄 [Refresh] กำลังสุ่ม ${buttons.length} ช่อง...`);  
-  for (let btn of buttons) {  
-    btn.click();  
-    await wait(delay);  
-  }  
-}
+        attempts++;
+        const refreshBtns = document.querySelectorAll(".input-group:not(.has-success) .halflings-icon.refresh");
+        
+        if (refreshBtns.length === 0) return;
 
-async function doCorrection(delay = 1000) {  
-  console.log("🎯 [Refresh] กด Correction...");  
-  const ok = await clickAndLog(".action-exercise-button.correct", "ปุ่ม Correction", 3000);  
-  if (ok) await wait(delay);  
-  return ok;  
-}
+        console.log(`🔁 [JL] Attempt ${attempts}: Randomizing...`);
+        refreshBtns.forEach(btn => btn.click());
+        
+        await new Promise(r => setTimeout(r, 600)); // รอ UI อัปเดต
+        document.querySelector(".action-exercise-button.correct")?.click();
 
-async function fixIncorrect(loopDelay = 10) {  
-  let wrongs;  
-  do {  
-    wrongs = Array.from(document.querySelectorAll(".input-group.has-error"));  
-    if (wrongs.length) {  
-      console.log(`❌ [Refresh] พบข้อผิด ${wrongs.length} ข้อ → กำลังสุ่มใหม่...`);  
-      for (let q of wrongs) {  
-        const btn = q.querySelector(".halflings-icon.refresh");  
-        if (btn) {  
-          btn.click();  
-          await wait(loopDelay);  
-        }  
-      }  
-      await doCorrection();  
-    }  
-  } while (wrongs.length);  
-  console.log("🎉 [Refresh] ทุกข้อถูกต้องแล้ว!");  
-}
+        // รอผลจาก Server แล้วเริ่มรอบใหม่
+        setTimeout(solveCycle, 1500);
+    };
 
-async function goNext(timeout = 5000) {  
-  console.log("➡️ รอปุ่ม Next...");  
-  const ok = await clickAndLog(".action-exercise-button.next", "ปุ่ม Next", timeout);  
-  if (ok) await wait(1000);  
-  return ok;  
-}
-
-// —— Main ——  
-async function refreshSolve() {
-  window.isRefreshRunning = true; // ✅ แจ้งระบบหลักว่ากำลังทำงานอยู่
-  console.log("🚀 เริ่ม refreshSolve()");
-
-  let score = 0;
-  let attempts = 0;
-  const maxAttempts = 5;
-
-  while (score < 100 && attempts < maxAttempts) {
-    console.log(`🔁 Attempt #${attempts + 1}`);
-    await doRefreshAll();  
-    const corrected = await doCorrection();  
-    if (!corrected) {
-      console.warn("❌ ไม่สามารถกด Correction ได้");
-      window.isRefreshRunning = false;
-      return;
-    }
-
-    await fixIncorrect();  
-    score = getScore();
-    console.log(`📊 คะแนนปัจจุบัน: ${score}`);
-    attempts++;
-  }
-
-  if (score >= 100) {
-    console.log("🏆 ได้คะแนนเต็ม 100 แล้ว!");
-    await goNext();  
-    console.log("✅ จบ refreshSolve()");
-  } else {
-    console.warn(`⚠️ ทำซ้ำ ${attempts} ครั้งแล้วยังไม่ได้คะแนนเต็ม (คะแนน: ${score})`);
-  }
-
-  window.isRefreshRunning = false; // ✅ จบงานแล้ว รีเซตสถานะ
-}
-
-refreshSolve();
+    solveCycle();
+})();
